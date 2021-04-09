@@ -8,7 +8,8 @@ from skimage.transform import resize
 import random
 
 class Pt_datagen_bu:
-	def _init(self,data_dir,anno_dir,model_input_shape,model_output_shape,batch_size_select,data_for):
+
+	def __init__(self,data_dir,anno_dir,model_input_shape,model_output_shape,batch_size_select,data_for):
 
 		self.kps_and_valid = []
 		self.kps = []
