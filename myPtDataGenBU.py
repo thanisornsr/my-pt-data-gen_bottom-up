@@ -11,19 +11,20 @@ class Pt_datagen_bu:
 
 	def __init__(self,data_dir,anno_dir,model_input_shape,model_output_shape,batch_size_select,data_for):
 
-		self.kps_and_valid = []
-		self.kps = []
-		self.valids = []
 
-		self.track_ids = []
-		self.img_ids = []
 		self.id_to_file_dict = {}
 		self.vid_to_id_dict = {}
 		self.id_to_track_id = {}
 		self.id_to_kpv = {}
+		self.id_to_kp = {}
+		self.id_to_valid = {}
+
+		self.pair_dict = {}
 
 		self.start_idx = []
 		self.end_idx = []
+
+		self.img_ids = []
 
 		self.input_shape = model_input_shape
 		self.output_shape = model_output_shape
@@ -37,6 +38,7 @@ class Pt_datagen_bu:
 		self.data_for = data_for
 
 		self.get_data_from_dir()
+		self.get_pair_dict()
 
 	def get_data_from_dir(self):
 		temp_image_id_with_label = []
@@ -96,7 +98,6 @@ class Pt_datagen_bu:
 
 		temp_id_to_file_dict = {temp_image_id_with_label[i]:temp_file_name_with_label[i] for i in range(len(temp_image_id_with_label))}
 
-		self.n_imgs = len(current_unique_image_id)
 		# self.bbox = temp_anno_bbox_list
 		# self.kps_and_valid = temp_anno_kp_list
 		# self.track_ids = temp_anno_track_id_list
@@ -105,3 +106,22 @@ class Pt_datagen_bu:
 		self.vid_to_id_dict = temp_vid_to_id_dict
 		self.id_to_track_id = temp_id_to_track_id
 		self.id_to_kpv = temp_id_to_kpv
+
+	def get_pair_dict(self):
+		temp_vid_to_id_dict = self.vid_to_id_dict
+		temp_valid_keys = self.id_to_kpv
+		temp_pair_dict = {}
+		temp_img_ids = []
+		for vid,i_ids in temp_vid_to_id_dict.items():
+			len_imgs_in_vid = len(i_ids)
+			for i in range(len_imgs_in_vid-1):
+			f_0_id = i_ids[i]
+			f_1_id = i_ids[i+1]
+			if f_0_id in temp_valid_keys and f_1_id in temp_valid_keys:
+				temp_pair_dict[f_0_id] = f_1_id
+				temp_img_ids.append(frame_0_id)
+
+		self.pair_dict = temp_pair_dict
+		self.img_ids = temp_img_ids
+		self.n_imgs = len(temp_img_ids)
+
