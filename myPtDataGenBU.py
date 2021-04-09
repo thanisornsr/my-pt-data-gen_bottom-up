@@ -130,7 +130,7 @@ class Pt_datagen_bu:
 				if f_0_id in temp_valid_keys and f_1_id in temp_valid_keys:
 					temp_pair_dict[f_0_id] = f_1_id
 					temp_wh_dict[f_0_id] = (img_w,img_h)
-					temp_img_ids.append(frame_0_id)
+					temp_img_ids.append(f_0_id)
 
 		self.pair_dict = temp_pair_dict
 		self.id_to_wh = temp_wh_dict
