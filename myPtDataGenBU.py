@@ -176,7 +176,7 @@ class Pt_datagen_bu:
 			t_ks,t_vs = self.get_target_valid_joint(kpv)
 			for i in range(len(t_ks)):
 				temp_k = t_ks[i]
-				temp_v = t_ks[i]
+				temp_v = t_vs[i]
 
 				t_ks[i] = np.delete(temp_k,[1,2],0)
 				t_vs[i] = np.delete(temp_v,[1,2])
