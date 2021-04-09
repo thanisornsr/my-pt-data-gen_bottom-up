@@ -19,6 +19,8 @@ class Pt_datagen_bu:
 		self.img_ids = []
 		self.id_to_file_dict = {}
 		self.vid_to_id_dict = {}
+		self.id_to_track_id = {}
+		self.id_to_kpv = {}
 
 		self.start_idx = []
 		self.end_idx = []
@@ -44,6 +46,8 @@ class Pt_datagen_bu:
 		temp_anno_id_list = []
 		temp_anno_kp_list = []
 		temp_vid_to_id_dict = {}
+		temp_id_to_track_id = {}
+		temp_id_to_kpv = {}
 
 		temp_anno_dir = self.anno_dir + self.data_for + '/'
 		for anno_file in os.listdir(temp_anno_dir):
@@ -62,24 +66,42 @@ class Pt_datagen_bu:
 			temp_vid_to_id_dict[anno_file] = current_image_id_with_label
 
 			
+
 			for anno in data_annotations:
+				current_track_id = []
+				current_image_id = []
+				current_kpv = []
 				temp_keys = list(anno.keys())
-				to_check_keys = ['image_id','bbox','track_id','image_id','keypoints']
+				to_check_keys = ['image_id','track_id','keypoints']
 				if all(item in temp_keys for item in to_check_keys):
 					if anno['image_id'] in temp_image_id_with_label:
 						bbox_temp = anno['bbox']
 						if bbox_temp[2] > 0 and bbox_temp[3] > 0:
 							if bbox_temp[0] >= 0 and bbox_temp[1] >= 0:
-								temp_anno_bbox_list.append(anno['bbox'])
-								temp_anno_track_id_list.append(anno['track_id'])
-								temp_anno_id_list.append(anno['image_id'])
-								temp_anno_kp_list.append(anno['keypoints'])
+								# temp_anno_bbox_list.append(anno['bbox'])
+								current_track_id.append(anno['track_id'])
+								current_image_id.append(anno['image_id'])
+								current_kpv.append(anno['keypoints'])
+
+				# create dict
+				current_unique_image_id = list(set(current_image_id))
+				for cid in current_unique_image_id:
+					cidx = [ x for x in range(len(current_image_id)) if current_image_id[x] == cid]
+					c_track_id = [current_track_id[x] for x in cidx]
+					c_kpv = [current_kpv[x] for x in cidx]
+
+					temp_id_to_track_id[cid] = c_track_id
+					temp_id_to_kpv[cid] = c_kpv
+
+
 		temp_id_to_file_dict = {temp_image_id_with_label[i]:temp_file_name_with_label[i] for i in range(len(temp_image_id_with_label))}
 
-		self.n_imgs = len(temp_anno_bbox_list)
-		self.bbox = temp_anno_bbox_list
-		self.kps_and_valid = temp_anno_kp_list
-		self.track_ids = temp_anno_track_id_list
-		self.img_ids = temp_anno_id_list
+		self.n_imgs = len(current_unique_image_id)
+		# self.bbox = temp_anno_bbox_list
+		# self.kps_and_valid = temp_anno_kp_list
+		# self.track_ids = temp_anno_track_id_list
+		# self.img_ids = temp_anno_id_list
 		self.id_to_file_dict = temp_id_to_file_dict
 		self.vid_to_id_dict = temp_vid_to_id_dict
+		self.id_to_track_id = temp_id_to_track_id
+		self.id_to_kpv = temp_id_to_kpv
