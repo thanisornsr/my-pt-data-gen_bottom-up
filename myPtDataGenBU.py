@@ -117,7 +117,7 @@ class Pt_datagen_bu:
 		temp_valid_keys = self.id_to_kpv
 		temp_pair_dict = {}
 		temp_img_ids = []
-		temp_wh_dict = []
+		temp_wh_dict = {}
 		for vid,i_ids in temp_vid_to_id_dict.items():
 			len_imgs_in_vid = len(i_ids)
 			temp_first_img = i_ids[0]
