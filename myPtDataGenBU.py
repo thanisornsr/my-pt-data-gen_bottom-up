@@ -174,6 +174,13 @@ class Pt_datagen_bu:
 		temp_id_to_kpv = self.id_to_kpv
 		for i_id,kpv in temp_id_to_kpv.items():
 			t_ks,t_vs = self.get_target_valid_joint(kpv)
+			for i in range(len(t_ks)):
+				temp_k = t_ks[i]
+				temp_v = t_ks[i]
+
+				t_ks[i] = np.delete(temp_k,[1,2],0)
+				t_vs[i] = np.delete(temp_v,[1,2])
+
 			temp_id_to_kp[i_id] = t_ks
 			temp_id_to_valid[i_id] = t_vs
 
