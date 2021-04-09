@@ -3,6 +3,7 @@ import json
 import math
 import numpy as np 
 import matplotlib.image as mpimg
+from skimage import io
 import tensorflow as tf
 from skimage.transform import resize
 import random
@@ -18,6 +19,7 @@ class Pt_datagen_bu:
 		self.id_to_kpv = {}
 		self.id_to_kp = {}
 		self.id_to_valid = {}
+		self.id_to_wh = {}
 
 		self.pair_dict = {}
 
@@ -39,6 +41,9 @@ class Pt_datagen_bu:
 
 		self.get_data_from_dir()
 		self.get_pair_dict()
+		# split kps and valids
+		# get wh dict
+		# 
 
 	def get_data_from_dir(self):
 		temp_image_id_with_label = []
@@ -112,16 +117,23 @@ class Pt_datagen_bu:
 		temp_valid_keys = self.id_to_kpv
 		temp_pair_dict = {}
 		temp_img_ids = []
+		temp_wh_dict = []
 		for vid,i_ids in temp_vid_to_id_dict.items():
 			len_imgs_in_vid = len(i_ids)
+			temp_first_img = i_ids[0]
+			temp_img = io.imread(temp_first_img)
+			img_h = temp_img[0]
+			img_w = temp_img[1]
 			for i in range(len_imgs_in_vid-1):
-			f_0_id = i_ids[i]
-			f_1_id = i_ids[i+1]
-			if f_0_id in temp_valid_keys and f_1_id in temp_valid_keys:
-				temp_pair_dict[f_0_id] = f_1_id
-				temp_img_ids.append(frame_0_id)
+				f_0_id = i_ids[i]
+				f_1_id = i_ids[i+1]
+				if f_0_id in temp_valid_keys and f_1_id in temp_valid_keys:
+					temp_pair_dict[f_0_id] = f_1_id
+					temp_wh_dict[f_0_id] = (img_w,img_h)
+					temp_img_ids.append(frame_0_id)
 
 		self.pair_dict = temp_pair_dict
+		self.id_to_wh = temp_wh_dict
 		self.img_ids = temp_img_ids
 		self.n_imgs = len(temp_img_ids)
 
