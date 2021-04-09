@@ -122,8 +122,8 @@ class Pt_datagen_bu:
 			len_imgs_in_vid = len(i_ids)
 			temp_first_img = i_ids[0]
 			temp_img = io.imread(self.data_dir + self.id_to_file_dict[temp_first_img])
-			img_h = temp_img[0]
-			img_w = temp_img[1]
+			img_h = temp_img.shape[0]
+			img_w = temp_img.shape[1]
 			for i in range(len_imgs_in_vid-1):
 				f_0_id = i_ids[i]
 				f_1_id = i_ids[i+1]
