@@ -43,7 +43,7 @@ class Pt_datagen_bu:
 		temp_anno_track_id_list = []
 		temp_anno_id_list = []
 		temp_anno_kp_list = []
-		temp_vid_to_id_dict = []
+		temp_vid_to_id_dict = {}
 
 		temp_anno_dir = self.anno_dir + self.data_for + '/'
 		for anno_file in os.listdir(temp_anno_dir):
