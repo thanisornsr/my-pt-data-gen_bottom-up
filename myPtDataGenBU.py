@@ -72,7 +72,7 @@ class Pt_datagen_bu:
 				current_image_id = []
 				current_kpv = []
 				temp_keys = list(anno.keys())
-				to_check_keys = ['image_id','track_id','keypoints']
+				to_check_keys = ['image_id','bbox','track_id','keypoints']
 				if all(item in temp_keys for item in to_check_keys):
 					if anno['image_id'] in temp_image_id_with_label:
 						bbox_temp = anno['bbox']
