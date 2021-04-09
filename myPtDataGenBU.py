@@ -18,6 +18,7 @@ class Pt_datagen_bu:
 		self.track_ids = []
 		self.img_ids = []
 		self.id_to_file_dict = {}
+		self.vid_to_id_dict = {}
 
 		self.start_idx = []
 		self.end_idx = []
@@ -42,9 +43,11 @@ class Pt_datagen_bu:
 		temp_anno_track_id_list = []
 		temp_anno_id_list = []
 		temp_anno_kp_list = []
+		temp_vid_to_id_dict = []
 
 		temp_anno_dir = self.anno_dir + self.data_for + '/'
 		for anno_file in os.listdir(temp_anno_dir):
+			current_image_id_with_label = []
 			if anno_file.endswith('.json'):
 				temp = temp_anno_dir + anno_file
 				with open(temp) as f:
@@ -54,7 +57,10 @@ class Pt_datagen_bu:
 			for temp_image in data_images:
 				if temp_image['is_labeled']:
 					temp_image_id_with_label.append(temp_image['id'])
+					current_image_id_with_label.append(temp_image['id'])
 					temp_file_name_with_label.append(temp_image['file_name'])
+			temp_vid_to_id_dict[anno_file] = current_image_id_with_label
+
 			
 			for anno in data_annotations:
 				temp_keys = list(anno.keys())
@@ -76,3 +82,4 @@ class Pt_datagen_bu:
 		self.track_ids = temp_anno_track_id_list
 		self.img_ids = temp_anno_id_list
 		self.id_to_file_dict = temp_id_to_file_dict
+		self.vid_to_id_dict = temp_vid_to_id_dict
