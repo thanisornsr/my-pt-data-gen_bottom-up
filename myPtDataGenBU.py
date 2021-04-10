@@ -304,6 +304,11 @@ class Pt_datagen_bu:
 				tv_0 = valid_0[i]
 				tv_1 = valid_1[i]
 				for j in range(self.n_keypoints):
+					# for debug
+					print(idx)
+					print(i)
+					print(j)
+					
 					tffs[:,:,[j,j+self.n_keypoints]] = self.render_tff(grid_x,grid_y,tkp_0[j],tkp_1[j],tv_0[j],tv_1[j],tffs[:,:,[j,j+self.n_keypoints]],temp_h,temp_w)
 
 			if len(img_0.shape) > 2 and len(img_1.shape) >2:
