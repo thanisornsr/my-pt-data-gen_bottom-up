@@ -283,7 +283,7 @@ class Pt_datagen_bu:
 			img_1 = resize(img_1,temp_input_shape).astype('float32')
 
 			# TFF
-			tffs = np.zeros(int(grid_y),int(grid_x),channels_tff)
+			tffs = np.zeros((int(grid_y),int(grid_x),channels_tff))
 			mutual_track_id = list(set(track_id_0).intersection(track_id_1))
 			tracked_0_idx = [x for x in range(len(track_id_0)) if track_id_0[x] in mutual_track_id]
 			tracked_1_idx = [x for x in range(len(track_id_1)) if track_id_1[x] in mutual_track_id]
