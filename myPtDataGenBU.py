@@ -208,14 +208,18 @@ class Pt_datagen_bu:
 			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
 			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
 			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
-			print('min_x: {}'.format(min_x))
-			print('max_x: {}'.format(max_x))
-			print('min_y: {}'.format(min_y))
-			print('max_y: {}'.format(max_y))
+			if min_x == max_x:
+				min_x = min_x - 1
+			if min_y == max_y:
+				min_y = min_y - 1
+			# print('min_x: {}'.format(min_x))
+			# print('max_x: {}'.format(max_x))
+			# print('min_y: {}'.format(min_y))
+			# print('max_y: {}'.format(max_y))
 			range_x = list(range(int(min_x), int(max_x), 1))
 			range_y = list(range(int(min_y), int(max_y), 1))
-			print('range_x: {}'.format(range_x))
-			print('range_y: {}'.format(range_y))
+			# print('range_x: {}'.format(range_x))
+			# print('range_y: {}'.format(range_y))
 			xx, yy = np.meshgrid(range_x, range_y)
 			ba_x = xx - centerA[0]  # the vector from (x,y) to centerA
 			ba_y = yy - centerA[1]
@@ -311,9 +315,9 @@ class Pt_datagen_bu:
 				tv_1 = valid_1[i]
 				for j in range(self.n_keypoints):
 					# for debug
-					print('idx: {}'.format(idx))
-					print('i: {}'.format(i))
-					print('j: {}'.format(j))
+					# print('idx: {}'.format(idx))
+					# print('i: {}'.format(i))
+					# print('j: {}'.format(j))
 
 					tffs[:,:,[j,j+self.n_keypoints]] = self.render_tff(grid_x,grid_y,tkp_0[j],tkp_1[j],tv_0[j],tv_1[j],tffs[:,:,[j,j+self.n_keypoints]],temp_h,temp_w)
 
