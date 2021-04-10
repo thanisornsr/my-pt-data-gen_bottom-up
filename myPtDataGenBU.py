@@ -338,6 +338,10 @@ class Pt_datagen_bu:
 		batch_TFF = np.array(batch_TFF)
 
 		return batch_imgs_0,batch_imgs_1, batch_TFF, batch_valids_0,batch_valids_1
+	def shuffle_order(self):
+		temp_img_ids = self.img_ids
+		random.shuffle(temp_img_ids)
+		self.img_ids = temp_img_ids
 
 
 			
