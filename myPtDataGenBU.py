@@ -187,5 +187,149 @@ class Pt_datagen_bu:
 		self.id_to_kp = temp_id_to_kp
 		self.id_to_valid = temp_id_to_valid
 
+	def render_tff(self,i_grid_x,i_grid_y,i_kp_A,i_kp_B,i_v_A,i_v_B,accumulate_vec_map,i_h,i_w):
+		if (i_v_A != 0) and (i_v_B !=0):
+			i_kp_A = i_kp_A.astype('float')
+			i_kp_B = i_kp_B.astype('float')
+			thre = 1.2  # limb width
+
+			centerA = (i_kp_A[0] * i_grid_x / i_w,i_kp_A[1] * i_grid_y / i_h)
+			centerB = (i_kp_B[0] * i_grid_x / i_w,i_kp_B[1] * i_grid_y / i_h)
+
+			limb_vec = i_kp_B - i_kp_A
+			norm = np.linalg.norm(limb_vec)
+			if (norm == 0.0):
+				# print('limb is too short, ignore it...')
+				return accumulate_vec_map
+
+			limb_vec_unit = limb_vec / norm
+
+			min_x = max(int(round(min(centerA[0], centerB[0]) - thre)), 0)
+			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
+			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
+			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
+			range_x = list(range(int(min_x), int(max_x), 1))
+			range_y = list(range(int(min_y), int(max_y), 1))
+			xx, yy = np.meshgrid(range_x, range_y)
+			ba_x = xx - centerA[0]  # the vector from (x,y) to centerA
+			ba_y = yy - centerA[1]
+			limb_width = np.abs(ba_x * limb_vec_unit[1] - ba_y * limb_vec_unit[0])
+			mask = limb_width < thre  # mask is 2D
+
+			vec_map = np.copy(accumulate_vec_map) * 0.0
+			vec_map[yy, xx] = np.repeat(mask[:, :, np.newaxis], 2, axis=2)
+			vec_map[yy, xx] *= limb_vec_unit[np.newaxis, np.newaxis, :]
+
+			mask = np.logical_or.reduce((np.abs(vec_map[:, :, 0]) > 0, np.abs(vec_map[:, :, 1]) > 0))
+			accumulate_vec_map += vec_map
+
+			return accumulate_vec_map
+		else:
+			# print('not valid')
+			return accumulate_vec_map
+
+	def gen_batch_tff(self,batch_order):
+		batch_imgs_0 = []
+		batch_imgs_1 = []
+
+		batch_TFF = []
+		batch_valids_0 = []
+		batch_valids_1 = []
+		b_start = self.start_idx[batch_order]
+		b_end = self.end_idx[batch_order]
+		temp_output_shape = self.output_shape
+		temp_input_shape = self.input_shape
+
+		dict_id_to_file = self.id_to_file_dict
+		dict_id_to_track_id = self.id_to_track_id
+		dict_id_to_kp = self.id_to_kp
+		dict_id_to_valid = self.id_to_valid
+		dict_id_to_wh = self.id_to_wh
+		dict_pair = self.pair_dict
+
+		temp_img_dir = self.data_dir
+		temp_img_ids = self.img_ids
+
+		for idx in range(b_start,b_end):
+			channels_tff = self.n_keypoints * 2
+
+			# get data
+
+			id_0 = temp_img_ids[idx]
+
+			id_1 = dict_pair[id_0]
+
+			temp_wh = dict_id_to_wh[id_0]
+			temp_w = temp_wh[0]
+			temp_h = temp_wh[1]
+
+			kps_0 = dict_id_to_kp[id_0]
+			kps_1 = dict_id_to_kp[id_1]
+
+			valid_0 = dict_id_to_valid[id_0]
+			valid_1 = dict_id_to_valid[id_1]
+
+			track_id_0 = dict_id_to_track_id[id_0]
+			track_id_1 = dict_id_to_track_id[id_1]
+
+			grid_y = self.output_shape[1]
+			grid_x = self.output_shape[0]
+
+			# load img
+			img_0 = io.imread(self.data_dir + self.id_to_file_dict[id_0])
+			img_1 = io.imread(self.data_dir + self.id_to_file_dict[id_1])
+
+			img_0 = resize(img_0,temp_input_shape).astype('float32')
+			img_1 = resize(img_1,temp_input_shape).astype('float32')
+
+			# TFF
+			tffs = np.zeros(int(grid_y),int(grid_x),channels_tff)
+			mutual_track_id = list(set(track_id_0).intersection(track_id_1))
+			tracked_0_idx = [x for x in range(len(track_id_0)) if track_id_0[x] in mutual_track_id]
+			tracked_1_idx = [x for x in range(len(track_id_1)) if track_id_1[x] in mutual_track_id]
+
+			if len(tracked_0_idx) != len(tracked_1_idx):
+				print(track_id_0)
+				print(track_id_1)
+				print('Something wrong')
+				print(mutual_track_id)
+				print(tracked_0_idx)
+				print(tracked_1_idx)
+
+			for i in range(len(tracked_0_idx)):
+				idx_0 = tracked_0_idx[i]
+				idx_1 = tracked_1_idx[i]
+				tkp_0 = kps_0[i]
+				tkp_1 = kps_1[i]
+				tv_0 = valid_0[i]
+				tv_1 = valid_1[i]
+				for j in range(self.n_keypoints):
+					tffs[:,:,[j,j+self.n_keypoints]] = self.render_tff(grid_x,grid_y,tkp_0[j],tkp_1[j],tv_0[j],tv_1[j],tffs[:,:,[j,j+self.n_keypoints]],temp_h,temp_w)
+
+			if len(img_0.shape) > 2 and len(img_1.shape) >2:
+				# concat imgs
+				batch_imgs_0.append(img_0)
+				batch_imgs_1.append(img_1)
+
+				# concat valids
+				batch_valids_0.append(valid_0)
+				batch_valids_1.append(valid_1)
+
+				#concat TFFs
+				batch_TFF.append(tffs)
+		batch_imgs_0 = np.array(batch_imgs_0)
+		batch_imgs_1 = np.array(batch_imgs_1)
+
+		batch_TFF = np.array(batch_TFF)
+
+		return batch_imgs_0,batch_imgs_1, batch_TFF, batch_valids_0,batch_valids_1
+
+
+			
+
+
+
+
+
 
 
