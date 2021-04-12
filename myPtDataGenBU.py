@@ -334,7 +334,7 @@ class Pt_datagen_bu:
 			grid_x = self.output_shape[0]
 
 			# img
-			img_0 = io.imread(self.data_dir + self.id_to_file_dict)
+			img_0 = io.imread(self.data_dir + self.id_to_file_dict[id_0])
 			img_0 = resize(img_0,temp_input_shape).astype('float32')
 
 			# heatmap
