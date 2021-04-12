@@ -279,6 +279,10 @@ class Pt_datagen_bu:
 			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
 			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
 			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
+			if min_x == max_x:
+				min_x = min_x - 1
+			if min_y == max_y:
+				min_y = min_y - 1
 			range_x = list(range(int(min_x), int(max_x), 1))
 			range_y = list(range(int(min_y), int(max_y), 1))
 			xx, yy = np.meshgrid(range_x, range_y)
