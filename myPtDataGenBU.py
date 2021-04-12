@@ -238,6 +238,136 @@ class Pt_datagen_bu:
 			# print('not valid')
 			return accumulate_vec_map
 
+	def render_heatmap(self,i_grid_x,i_grid_y,i_kp,i_v,sigma,accumulate_confid_map,i_h,i_w):
+		if i_v != 0:
+			y_range = [i for i in range(int(i_grid_y))]
+			x_range = [i for i in range(int(i_grid_x))]
+			xx, yy = np.meshgrid(x_range,y_range)
+			t_x = i_kp[0] * i_grid_x / i_w
+			t_y = i_kp[1] * i_grid_y / i_h
+			# print(t_kp)
+			d2 = (xx - t_x)**2 + (yy - t_y)**2
+			exponent = d2 / 2.0 / sigma / sigma
+			mask = exponent <= 4.6052
+			cofid_map = np.exp(-exponent)
+			cofid_map = np.multiply(mask, cofid_map)
+			accumulate_confid_map += cofid_map
+			accumulate_confid_map[accumulate_confid_map > 1.0] = 1.0
+			return accumulate_confid_map
+		else:
+			return accumulate_confid_map
+
+	def render_paf(self,i_grid_x,i_grid_y,i_kp_A,i_kp_B,i_v_A,i_v_B,accumulate_vec_map,i_h,i_w):
+		if (i_v_A != 0) and (i_v_B !=0):
+			i_kp_A = i_kp_A.astype('float')
+			i_kp_B = i_kp_B.astype('float')
+			#1.25
+			thre = 1.5  # limb width
+
+			centerA = (i_kp_A[0] * i_grid_x / i_w,i_kp_A[1] * i_grid_y / i_h)
+			centerB = (i_kp_B[0] * i_grid_x / i_w,i_kp_B[1] * i_grid_y / i_h)
+
+			limb_vec = i_kp_B - i_kp_A
+			norm = np.linalg.norm(limb_vec)
+			if (norm == 0.0):
+				# print('limb is too short, ignore it...')
+				return accumulate_vec_map
+
+			limb_vec_unit = limb_vec / norm
+
+			min_x = max(int(round(min(centerA[0], centerB[0]) - thre)), 0)
+			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
+			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
+			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
+			range_x = list(range(int(min_x), int(max_x), 1))
+			range_y = list(range(int(min_y), int(max_y), 1))
+			xx, yy = np.meshgrid(range_x, range_y)
+			ba_x = xx - centerA[0]  # the vector from (x,y) to centerA
+			ba_y = yy - centerA[1]
+			limb_width = np.abs(ba_x * limb_vec_unit[1] - ba_y * limb_vec_unit[0])
+			mask = limb_width < thre  # mask is 2D
+
+			vec_map = np.copy(accumulate_vec_map) * 0.0
+			vec_map[yy, xx] = np.repeat(mask[:, :, np.newaxis], 2, axis=2)
+			vec_map[yy, xx] *= limb_vec_unit[np.newaxis, np.newaxis, :]
+
+			mask = np.logical_or.reduce((np.abs(vec_map[:, :, 0]) > 0, np.abs(vec_map[:, :, 1]) > 0))
+			accumulate_vec_map += vec_map
+
+			return accumulate_vec_map
+		else:
+			# print('not valid')
+			return accumulate_vec_map
+
+	def gen_batch(self,batch_order):
+		batch_imgs = []
+		batch_heatmaps = []
+		batch_pafs = []
+		batch_valids = []
+		b_start = self.start_idx[batch_order]
+		b_end = self.end_idx[batch_order]
+		temp_output_shape = self.output_shape
+		temp_input_shape = self.input_shape
+
+		dict_id_to_file = self.id_to_file_dict
+		dict_id_to_kp = self.id_to_kp
+		dict_id_to_valid = self.id_to_valid
+		dict_id_to_wh = self.id_to_wh
+
+		temp_img_dir = self.data_dir
+		temp_img_ids = self.img_ids
+
+		for idx in range(b_start,b_end):
+			channels_heat = self.n_keypoints
+			channels_paf = 2*self.n_limbs
+
+			id_0 = temp_img_ids[idx]
+
+			temp_wh = dict_id_to_wh[id_0]
+			temp_w = temp_wh[0]
+			temp_h = temp_wh[1]
+
+			kps_0 = dict_id_to_kp[id_0]
+			valid_0 = dict_id_to_valid[id_0]
+
+			grid_y = self.output_shape[1]
+			grid_x = self.output_shape[0]
+
+			# img
+			img_0 = io.imread(self.data_dir + self.id_to_file_dict)
+			img_0 = resize(img_0,temp_input_shape).astype('float32')
+
+			# heatmap
+			heatmaps = np.zeros((int(grid_y),int(grid_x),channels_heat))
+			for i in range(len(kps_0)):
+				for j in range(channels_heat):
+					heatmaps[:,:,j] = self.render_heatmap(grid_x,grid_y,kps_0[i][j],valid_0[i][j],2,heatmaps[:,:,j],temp_h,temp_w)
+
+			# paf
+			pafs = np.zeros((int(grid_y),int(grid_x),channels_paf))
+			temp_limb_list = self.limb_list
+			for i in range(len(kps_0)):
+				for j in range(len(temp_limb_list)):
+					limb = temp_limb_list[j]
+					idx_A = limb[0]
+					idx_B = limb[1]
+					pafs[:,:,[j,j+self.n_limbs]] = self.render_paf(grid_x,grid_y,kps_0[i][idx_A],kps_0[i][idx_B],valid_0[i][idx_A],valid_0[i][idx_B],pafs[:,:,[j,j+self.n_limbs]],temp_h,temp_w)
+
+			if len(img_0.shape) > 2:
+				batch_imgs.append(img_0)
+				batch_heatmaps.append(heatmaps)
+				batch_valids.append(valid_0)
+				batch_pafs.append(pafs)
+
+		batch_imgs = np.array(batch_imgs)
+
+		batch_heatmaps = np.array(batch_heatmaps)
+		batch_pafs = np.array(batch_pafs)
+
+		return batch_imgs, batch_heatmaps, batch_pafs, batch_valids
+
+
+
 	def gen_batch_tff(self,batch_order):
 		batch_imgs_0 = []
 		batch_imgs_1 = []
