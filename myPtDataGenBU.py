@@ -262,7 +262,7 @@ class Pt_datagen_bu:
 			i_kp_A = i_kp_A.astype('float')
 			i_kp_B = i_kp_B.astype('float')
 			#1.25
-			thre = 1.5  # limb width
+			thre = 1  # limb width
 
 			centerA = (i_kp_A[0] * i_grid_x / i_w,i_kp_A[1] * i_grid_y / i_h)
 			centerB = (i_kp_B[0] * i_grid_x / i_w,i_kp_B[1] * i_grid_y / i_h)
