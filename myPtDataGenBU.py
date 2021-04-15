@@ -285,6 +285,11 @@ class Pt_datagen_bu:
 				min_y = min_y - 1
 			range_x = list(range(int(min_x), int(max_x), 1))
 			range_y = list(range(int(min_y), int(max_y), 1))
+			if len(range_x) == 0 or len(range_y) == 0:
+				print('there is something wrong')
+				print('range_x: {}'.format(range_x))
+				print('range_y: {}'.format(range_y))
+
 			xx, yy = np.meshgrid(range_x, range_y)
 			ba_x = xx - centerA[0]  # the vector from (x,y) to centerA
 			ba_y = yy - centerA[1]
