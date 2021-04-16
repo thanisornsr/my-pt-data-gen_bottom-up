@@ -208,10 +208,10 @@ class Pt_datagen_bu:
 			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
 			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
 			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
-			if min_x == max_x:
-				min_x = min_x - 1
-			if min_y == max_y:
-				min_y = min_y - 1
+			if min_x >= max_x:
+				min_x = max_x - 1
+			if min_y >= max_y:
+				min_y = max_y - 1
 			# print('min_x: {}'.format(min_x))
 			# print('max_x: {}'.format(max_x))
 			# print('min_y: {}'.format(min_y))
@@ -279,10 +279,10 @@ class Pt_datagen_bu:
 			max_x = min(int(round(max(centerA[0], centerB[0]) + thre)), i_grid_x)
 			min_y = max(int(round(min(centerA[1], centerB[1]) - thre)), 0)
 			max_y = min(int(round(max(centerA[1], centerB[1]) + thre)), i_grid_y)
-			if min_x == max_x:
-				min_x = min_x - 1
-			if min_y == max_y:
-				min_y = min_y - 1
+			if min_x >= max_x:
+				min_x = max_x - 1
+			if min_y >= max_y:
+				min_y = max_y - 1
 			range_x = list(range(int(min_x), int(max_x), 1))
 			range_y = list(range(int(min_y), int(max_y), 1))
 			if len(range_x) == 0 or len(range_y) == 0:
