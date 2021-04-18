@@ -448,10 +448,10 @@ class Pt_datagen_bu:
 			for i in range(len(tracked_0_idx)):
 				idx_0 = tracked_0_idx[i]
 				idx_1 = tracked_1_idx[i]
-				tkp_0 = kps_0[i]
-				tkp_1 = kps_1[i]
-				tv_0 = valid_0[i]
-				tv_1 = valid_1[i]
+				tkp_0 = kps_0[idx_0]
+				tkp_1 = kps_1[idx_1]
+				tv_0 = valid_0[idx_0]
+				tv_1 = valid_1[idx_1]
 				for j in range(self.n_keypoints):
 					# for debug
 					# print('idx: {}'.format(idx))
